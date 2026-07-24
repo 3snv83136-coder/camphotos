@@ -12,10 +12,15 @@
   const videoInput = document.getElementById("videoInput");
   const videoInputEmpty = document.getElementById("videoInputEmpty");
   const folderBtn = document.getElementById("folderBtn");
+  const openFolderBtn = document.getElementById("openFolderBtn");
   const folderLabel = document.getElementById("folderLabel");
+  const hint = document.getElementById("hint");
   const speedDown = document.getElementById("speedDown");
   const speedUp = document.getElementById("speedUp");
   const speedBtn = document.getElementById("speedBtn");
+
+  const api = window.camphotos;
+  const isElectron = Boolean(api?.isElectron);
 
   const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
   let speedIndex = SPEEDS.indexOf(1);
@@ -26,7 +31,7 @@
   const sessionCaptures = [];
 
   function formatSpeed(rate) {
-    return Number.isInteger(rate) ? `${rate}×` : `${rate}×`;
+    return `${rate}×`;
   }
 
   function applySpeed() {
@@ -73,6 +78,23 @@
     statusEl.classList.add("show");
     clearTimeout(showStatus._t);
     showStatus._t = setTimeout(() => statusEl.classList.remove("show"), 2200);
+  }
+
+  function shortPath(p) {
+    if (!p) return "";
+    const home = "/Users/";
+    if (p.includes("/Documents/")) {
+      return "Documents/" + p.split("/Documents/")[1];
+    }
+    return p.length > 48 ? `…${p.slice(-46)}` : p;
+  }
+
+  async function refreshElectronFolderLabel() {
+    if (!isElectron) return;
+    const dir = await api.getCaptureDir();
+    folderLabel.textContent = `Dossier · ${shortPath(dir)}`;
+    folderLabel.classList.add("ready");
+    openFolderBtn.hidden = false;
   }
 
   function loadVideo(file) {
@@ -124,6 +146,15 @@
   }
 
   async function pickFolder() {
+    if (isElectron) {
+      const dir = await api.pickFolder();
+      if (!dir) return;
+      folderLabel.textContent = `Dossier · ${shortPath(dir)}`;
+      folderLabel.classList.add("ready");
+      showStatus(`Dossier prêt · ${shortPath(dir)}`);
+      return;
+    }
+
     if (!window.showDirectoryPicker) {
       showStatus("Navigateur non supporté — les captures seront téléchargées");
       folderLabel.textContent = "Téléchargements du navigateur";
@@ -142,6 +173,7 @@
   }
 
   folderBtn.addEventListener("click", pickFolder);
+  openFolderBtn?.addEventListener("click", () => api?.openCaptureDir());
 
   async function saveToFolder(blob, filename) {
     const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
@@ -160,12 +192,19 @@
   }
 
   async function saveCapture(blob, filename) {
+    if (isElectron) {
+      const buffer = await blob.arrayBuffer();
+      const result = await api.saveCapture(buffer, filename);
+      if (!result?.ok) throw new Error(result?.error || "Échec enregistrement");
+      return "Mac";
+    }
+
     if (dirHandle) {
       try {
         await saveToFolder(blob, filename);
         return "dossier";
       } catch {
-        // permission may have expired — fall through
+        /* fall through */
       }
     }
 
@@ -261,7 +300,11 @@
     if (file) loadVideo(file);
   });
 
-  if (!window.showDirectoryPicker) {
+  if (isElectron) {
+    hint.innerHTML =
+      "Les photos sont enregistrées sur ton Mac dans <code>Documents/CAMPHOTOS/captures</code> (modifiable).";
+    refreshElectronFolderLabel();
+  } else if (!window.showDirectoryPicker) {
     folderBtn.disabled = true;
     folderLabel.textContent = "Téléchargements (Chrome/Edge recommandé)";
   }

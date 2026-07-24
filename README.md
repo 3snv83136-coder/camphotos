@@ -2,24 +2,45 @@
 
 Visionneuse pour vidéos d’inspection (caméra canalisation) avec capture photo en un clic.
 
-## En ligne (Vercel)
+## App Mac (recommandé)
 
-Déploie le dossier `public/` en site statique. Les captures partent dans un dossier local choisi dans le navigateur (Chrome / Edge), ou en téléchargement.
-
-## Local
+### Lancer en développement
 
 ```bash
 npm install
+npm run app
+```
+
+### Créer l’app téléchargeable (.app + .zip)
+
+```bash
+npm run dist:mac
+```
+
+Résultat dans `dist/` :
+- `mac-universal/CAMPHOTOS.app` — glisse dans Applications
+- `CAMPHOTOS-1.0.0-universal-mac.zip` — archive à partager
+
+Au premier lancement (app non signée) : clic droit → **Ouvrir**.
+
+Les captures vont par défaut dans :
+
+`Documents/CAMPHOTOS/captures`
+
+## Web (Vercel / navigateur)
+
+Site statique dans `public/`. Choisis un dossier de sortie dans Chrome/Edge, ou télécharge chaque photo.
+
+## Serveur local
+
+```bash
 npm start
 ```
 
 Ouvre [http://localhost:3847](http://localhost:3847)
 
-En local, si aucun dossier n’est choisi, les photos sont aussi sauvées dans `captures/`.
-
 ## Usage
 
-1. (Recommandé) Clique **Dossier de sortie** et choisis où enregistrer les photos
-2. Ouvre une vidéo
-3. Place-toi sur l’image à garder
-4. Clique **Capturer la photo** (ou touche `C`)
+1. Ouvre une vidéo
+2. Ajuste la vitesse (− / +)
+3. Capture avec le bouton ou la touche `C`
