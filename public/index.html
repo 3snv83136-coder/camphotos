@@ -55,6 +55,21 @@
         </section>
 
         <aside class="side">
+          <div class="speed-panel" id="speedPanel">
+            <span class="speed-label">Vitesse</span>
+            <div class="speed-controls">
+              <button type="button" class="btn btn-ghost speed-btn" id="speedDown" disabled aria-label="Ralentir">
+                −
+              </button>
+              <button type="button" class="btn btn-ghost speed-value" id="speedBtn" disabled title="Remettre à 1×">
+                1×
+              </button>
+              <button type="button" class="btn btn-ghost speed-btn" id="speedUp" disabled aria-label="Accélérer">
+                +
+              </button>
+            </div>
+          </div>
+
           <button type="button" class="btn btn-capture" id="captureBtn" disabled>
             <span class="capture-icon" aria-hidden="true"></span>
             Capturer la photo

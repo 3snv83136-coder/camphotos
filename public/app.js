@@ -13,11 +13,39 @@
   const videoInputEmpty = document.getElementById("videoInputEmpty");
   const folderBtn = document.getElementById("folderBtn");
   const folderLabel = document.getElementById("folderLabel");
+  const speedDown = document.getElementById("speedDown");
+  const speedUp = document.getElementById("speedUp");
+  const speedBtn = document.getElementById("speedBtn");
+
+  const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
+  let speedIndex = SPEEDS.indexOf(1);
 
   let objectUrl = null;
   let capturing = false;
   let dirHandle = null;
   const sessionCaptures = [];
+
+  function formatSpeed(rate) {
+    return Number.isInteger(rate) ? `${rate}×` : `${rate}×`;
+  }
+
+  function applySpeed() {
+    const rate = SPEEDS[speedIndex];
+    video.playbackRate = rate;
+    speedBtn.textContent = formatSpeed(rate);
+    speedDown.disabled = !video.src || speedIndex <= 0;
+    speedUp.disabled = !video.src || speedIndex >= SPEEDS.length - 1;
+    speedBtn.disabled = !video.src;
+  }
+
+  function changeSpeed(delta) {
+    if (!video.src) return;
+    const next = speedIndex + delta;
+    if (next < 0 || next >= SPEEDS.length) return;
+    speedIndex = next;
+    applySpeed();
+    showStatus(`Vitesse ${formatSpeed(SPEEDS[speedIndex])}`);
+  }
 
   function stampName() {
     const stamp = new Date()
@@ -57,9 +85,19 @@
     emptyState.hidden = true;
     hud.hidden = false;
     captureBtn.disabled = false;
+    applySpeed();
     video.play().catch(() => {});
     showStatus(file.name);
   }
+
+  speedDown.addEventListener("click", () => changeSpeed(-1));
+  speedUp.addEventListener("click", () => changeSpeed(1));
+  speedBtn.addEventListener("click", () => {
+    if (!video.src) return;
+    speedIndex = SPEEDS.indexOf(1);
+    applySpeed();
+    showStatus("Vitesse 1×");
+  });
 
   function onFileChange(event) {
     const file = event.target.files?.[0];
@@ -191,6 +229,14 @@
     if (e.key === "c" || e.key === "C") {
       e.preventDefault();
       capturePhoto();
+    }
+    if (e.key === "<" || e.key === ",") {
+      e.preventDefault();
+      changeSpeed(-1);
+    }
+    if (e.key === ">" || e.key === ".") {
+      e.preventDefault();
+      changeSpeed(1);
     }
   });
 
