@@ -308,4 +308,22 @@
     folderBtn.disabled = true;
     folderLabel.textContent = "Téléchargements (Chrome/Edge recommandé)";
   }
+
+  // Bannière / bouton installateur Mac (web uniquement)
+  const installBanner = document.getElementById("installBanner");
+  const installMacHeaderBtn = document.getElementById("installMacHeaderBtn");
+  const dismissInstallBtn = document.getElementById("dismissInstallBtn");
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform) || navigator.userAgent.includes("Mac");
+
+  if (!isElectron && isMac) {
+    installMacHeaderBtn.hidden = false;
+    if (!sessionStorage.getItem("camphotos-hide-install")) {
+      installBanner.hidden = false;
+    }
+  }
+
+  dismissInstallBtn?.addEventListener("click", () => {
+    installBanner.hidden = true;
+    sessionStorage.setItem("camphotos-hide-install", "1");
+  });
 })();

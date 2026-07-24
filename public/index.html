@@ -13,6 +13,29 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="install-banner" id="installBanner" hidden>
+      <div class="install-banner-inner">
+        <div>
+          <p class="install-title">Installer CAMPHOTOS sur Mac</p>
+          <p class="install-text">
+            App bureau : captures enregistrées directement dans un dossier.
+          </p>
+        </div>
+        <div class="install-actions">
+          <a
+            class="btn btn-primary"
+            id="installMacBtn"
+            href="https://github.com/3snv83136-coder/camphotos/releases/latest/download/CAMPHOTOS-1.0.0-arm64.dmg"
+          >
+            Télécharger l’installateur
+          </a>
+          <button type="button" class="btn btn-ghost" id="dismissInstallBtn">
+            Continuer en ligne
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="app">
       <header class="top">
         <div class="brand">
@@ -23,6 +46,14 @@
           </div>
         </div>
         <div class="top-actions">
+          <a
+            class="btn btn-primary"
+            id="installMacHeaderBtn"
+            href="https://github.com/3snv83136-coder/camphotos/releases/latest/download/CAMPHOTOS-1.0.0-arm64.dmg"
+            hidden
+          >
+            Installer sur Mac
+          </a>
           <button type="button" class="btn btn-ghost" id="folderBtn">
             Dossier de sortie
           </button>

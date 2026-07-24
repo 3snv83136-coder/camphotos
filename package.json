@@ -8,7 +8,7 @@
     "start": "node server.js",
     "dev": "node server.js",
     "app": "electron .",
-    "dist:mac": "electron-builder --mac dir zip",
+    "dist:mac": "electron-builder --mac dmg zip",
     "build:web": "echo 'CAMPHOTOS static — output public/'"
   },
   "dependencies": {
@@ -32,8 +32,24 @@
     ],
     "mac": {
       "category": "public.app-category.photography",
-      "target": ["dir", "zip"],
+      "target": ["dmg", "zip"],
       "identity": null
+    },
+    "dmg": {
+      "title": "Installer CAMPHOTOS",
+      "contents": [
+        {
+          "x": 140,
+          "y": 180,
+          "type": "file"
+        },
+        {
+          "x": 420,
+          "y": 180,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     }
   }
 }

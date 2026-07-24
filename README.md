@@ -2,36 +2,26 @@
 
 Visionneuse pour vidéos d’inspection (caméra canalisation) avec capture photo en un clic.
 
-## App Mac (recommandé)
+## Installer sur Mac
 
-### Lancer en développement
+1. Télécharge l’installateur :  
+   [CAMPHOTOS-1.0.0-arm64.dmg](https://github.com/3snv83136-coder/camphotos/releases/latest/download/CAMPHOTOS-1.0.0-arm64.dmg)
+2. Ouvre le DMG → glisse **CAMPHOTOS** dans **Applications**
+3. Au 1er lancement : clic droit → **Ouvrir**
+
+Captures par défaut : `Documents/CAMPHOTOS/captures`
+
+Sur le site web (Mac), une bannière **Installer sur Mac** propose le même téléchargement.
+
+## App Mac (développement)
 
 ```bash
 npm install
-npm run app
+npm run app        # lancer
+npm run dist:mac   # rebuild DMG + zip
 ```
 
-### Créer l’app téléchargeable (.app + .zip)
-
-```bash
-npm run dist:mac
-```
-
-Résultat dans `dist/` :
-- `mac-universal/CAMPHOTOS.app` — glisse dans Applications
-- `CAMPHOTOS-1.0.0-universal-mac.zip` — archive à partager
-
-Au premier lancement (app non signée) : clic droit → **Ouvrir**.
-
-Les captures vont par défaut dans :
-
-`Documents/CAMPHOTOS/captures`
-
-## Web (Vercel / navigateur)
-
-Site statique dans `public/`. Choisis un dossier de sortie dans Chrome/Edge, ou télécharge chaque photo.
-
-## Serveur local
+## Web / serveur local
 
 ```bash
 npm start
