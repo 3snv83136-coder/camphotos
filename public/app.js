@@ -11,9 +11,22 @@
   const captureCount = document.getElementById("captureCount");
   const videoInput = document.getElementById("videoInput");
   const videoInputEmpty = document.getElementById("videoInputEmpty");
+  const folderBtn = document.getElementById("folderBtn");
+  const folderLabel = document.getElementById("folderLabel");
 
   let objectUrl = null;
   let capturing = false;
+  let dirHandle = null;
+  const sessionCaptures = [];
+
+  function stampName() {
+    const stamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .replace("T", "_")
+      .slice(0, 19);
+    return `capture_${stamp}.png`;
+  }
 
   function formatTime(seconds) {
     if (!Number.isFinite(seconds)) return "00:00";
@@ -31,7 +44,7 @@
     statusEl.textContent = message;
     statusEl.classList.add("show");
     clearTimeout(showStatus._t);
-    showStatus._t = setTimeout(() => statusEl.classList.remove("show"), 1800);
+    showStatus._t = setTimeout(() => statusEl.classList.remove("show"), 2200);
   }
 
   function loadVideo(file) {
@@ -56,28 +69,82 @@
 
   videoInput.addEventListener("change", onFileChange);
   videoInputEmpty.addEventListener("change", onFileChange);
-
   video.addEventListener("timeupdate", updateTimecode);
   video.addEventListener("loadedmetadata", updateTimecode);
 
-  async function refreshCaptures() {
-    try {
-      const res = await fetch("/api/captures");
-      const data = await res.json();
-      if (!data.ok) return;
-      captureCount.textContent = String(data.captures.length);
-      capturesEl.innerHTML = data.captures
-        .map(
-          (c) => `
-          <a class="capture-card" href="${c.url}" target="_blank" rel="noopener" title="${c.filename}">
-            <img src="${c.url}" alt="${c.filename}" loading="lazy" />
-            <span>${c.filename}</span>
-          </a>`
-        )
-        .join("");
-    } catch {
-      /* ignore */
+  function renderCaptures() {
+    captureCount.textContent = String(sessionCaptures.length);
+    capturesEl.innerHTML = sessionCaptures
+      .map(
+        (c) => `
+        <a class="capture-card" href="${c.url}" download="${c.filename}" title="${c.filename}">
+          <img src="${c.url}" alt="${c.filename}" loading="lazy" />
+          <span>${c.filename}</span>
+        </a>`
+      )
+      .join("");
+  }
+
+  async function pickFolder() {
+    if (!window.showDirectoryPicker) {
+      showStatus("Navigateur non supporté — les captures seront téléchargées");
+      folderLabel.textContent = "Téléchargements du navigateur";
+      return;
     }
+    try {
+      dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+      folderLabel.textContent = `Dossier · ${dirHandle.name}`;
+      folderLabel.classList.add("ready");
+      showStatus(`Dossier prêt · ${dirHandle.name}`);
+    } catch (err) {
+      if (err?.name !== "AbortError") {
+        showStatus("Impossible d’ouvrir le dossier");
+      }
+    }
+  }
+
+  folderBtn.addEventListener("click", pickFolder);
+
+  async function saveToFolder(blob, filename) {
+    const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  async function saveCapture(blob, filename) {
+    if (dirHandle) {
+      try {
+        await saveToFolder(blob, filename);
+        return "dossier";
+      } catch {
+        // permission may have expired — fall through
+      }
+    }
+
+    try {
+      const form = new FormData();
+      form.append("photo", blob, filename);
+      const res = await fetch("/api/capture", { method: "POST", body: form });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok) return "serveur";
+      }
+    } catch {
+      /* pas de serveur local */
+    }
+
+    downloadBlob(blob, filename);
+    return "téléchargement";
   }
 
   async function capturePhoto() {
@@ -103,16 +170,12 @@
         );
       });
 
-      const form = new FormData();
-      form.append("photo", blob, "capture.png");
-
-      const res = await fetch("/api/capture", { method: "POST", body: form });
-      const data = await res.json();
-
-      if (!data.ok) throw new Error(data.error || "Erreur serveur");
-
-      showStatus(`Enregistré · ${data.filename}`);
-      await refreshCaptures();
+      const filename = stampName();
+      const where = await saveCapture(blob, filename);
+      const url = URL.createObjectURL(blob);
+      sessionCaptures.unshift({ filename, url });
+      renderCaptures();
+      showStatus(`Enregistré (${where}) · ${filename}`);
     } catch (err) {
       showStatus(err.message || "Échec de la capture");
     } finally {
@@ -124,14 +187,13 @@
   captureBtn.addEventListener("click", capturePhoto);
 
   document.addEventListener("keydown", (e) => {
-    if (e.target.matches("input, textarea")) return;
+    if (e.target.matches("input, textarea, button")) return;
     if (e.key === "c" || e.key === "C") {
       e.preventDefault();
       capturePhoto();
     }
   });
 
-  // Drag & drop vidéo
   ["dragenter", "dragover"].forEach((type) => {
     playerWrap.addEventListener(type, (e) => {
       e.preventDefault();
@@ -153,5 +215,8 @@
     if (file) loadVideo(file);
   });
 
-  refreshCaptures();
+  if (!window.showDirectoryPicker) {
+    folderBtn.disabled = true;
+    folderLabel.textContent = "Téléchargements (Chrome/Edge recommandé)";
+  }
 })();

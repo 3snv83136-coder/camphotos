@@ -1,27 +1,25 @@
 # CAMPHOTOS
 
-Visionneuse locale pour vidéos d’inspection (caméra canalisation) avec capture photo en un clic.
+Visionneuse pour vidéos d’inspection (caméra canalisation) avec capture photo en un clic.
 
-## Démarrage
+## En ligne (Vercel)
+
+Déploie le dossier `public/` en site statique. Les captures partent dans un dossier local choisi dans le navigateur (Chrome / Edge), ou en téléchargement.
+
+## Local
 
 ```bash
 npm install
 npm start
 ```
 
-Ouvre ensuite : [http://localhost:3847](http://localhost:3847)
+Ouvre [http://localhost:3847](http://localhost:3847)
+
+En local, si aucun dossier n’est choisi, les photos sont aussi sauvées dans `captures/`.
 
 ## Usage
 
-1. Clique sur **Ouvrir une vidéo** (ou glisse-dépose le fichier sur la zone)
-2. Place-toi sur l’image à garder
-3. Clique **Capturer la photo** (ou touche `C`)
-4. Les images sont enregistrées dans le dossier `captures/`
-
-## Dossier des captures
-
-Toutes les photos vont ici :
-
-```
-captures/capture_AAAA-MM-JJ_HH-MM-SS.png
-```
+1. (Recommandé) Clique **Dossier de sortie** et choisis où enregistrer les photos
+2. Ouvre une vidéo
+3. Place-toi sur l’image à garder
+4. Clique **Capturer la photo** (ou touche `C`)

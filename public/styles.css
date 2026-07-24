@@ -48,6 +48,31 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.folder-label {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.folder-label.ready {
+  color: var(--accent);
+}
+
+.hint strong {
+  color: var(--text);
+  font-weight: 600;
 }
 
 .brand {

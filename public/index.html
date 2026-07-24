@@ -22,10 +22,15 @@
             <p class="brand-sub">Inspection · captures rapport</p>
           </div>
         </div>
-        <label class="btn btn-ghost file-btn">
-          Ouvrir une vidéo
-          <input id="videoInput" type="file" accept="video/*" hidden />
-        </label>
+        <div class="top-actions">
+          <button type="button" class="btn btn-ghost" id="folderBtn">
+            Dossier de sortie
+          </button>
+          <label class="btn btn-ghost file-btn">
+            Ouvrir une vidéo
+            <input id="videoInput" type="file" accept="video/*" hidden />
+          </label>
+        </div>
       </header>
 
       <main class="stage">
@@ -55,10 +60,11 @@
             Capturer la photo
             <kbd>C</kbd>
           </button>
-          <p class="hint">
-            Place-toi sur l’image voulue, puis capture. Les photos vont dans le
-            dossier <code>captures/</code>.
+          <p class="hint" id="hint">
+            Choisis d’abord un <strong>dossier de sortie</strong>, puis capture.
+            Sinon chaque photo sera téléchargée.
           </p>
+          <p class="folder-label" id="folderLabel">Aucun dossier sélectionné</p>
 
           <div class="captures-head">
             <h2>Captures</h2>

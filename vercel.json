@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo 'static site — skip npm'",
+  "buildCommand": "echo 'CAMPHOTOS static'",
+  "outputDirectory": "public"
+}
