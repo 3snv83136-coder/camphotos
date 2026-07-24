@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CAMPHOTOS — Inspection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <p class="brand-name">CAMPHOTOS</p>
+            <p class="brand-sub">Inspection · captures rapport</p>
+          </div>
+        </div>
+        <label class="btn btn-ghost file-btn">
+          Ouvrir une vidéo
+          <input id="videoInput" type="file" accept="video/*" hidden />
+        </label>
+      </header>
+
+      <main class="stage">
+        <section class="player-wrap" id="playerWrap">
+          <div class="empty" id="emptyState">
+            <p class="empty-title">Aucune vidéo</p>
+            <p class="empty-text">
+              Charge une vidéo d’inspection pour commencer les captures.
+            </p>
+            <label class="btn btn-primary file-btn">
+              Choisir un fichier
+              <input id="videoInputEmpty" type="file" accept="video/*" hidden />
+            </label>
+          </div>
+
+          <video id="video" playsinline></video>
+
+          <div class="hud" id="hud" hidden>
+            <span id="timecode" class="timecode">00:00 / 00:00</span>
+            <span id="status" class="status" aria-live="polite"></span>
+          </div>
+        </section>
+
+        <aside class="side">
+          <button type="button" class="btn btn-capture" id="captureBtn" disabled>
+            <span class="capture-icon" aria-hidden="true"></span>
+            Capturer la photo
+            <kbd>C</kbd>
+          </button>
+          <p class="hint">
+            Place-toi sur l’image voulue, puis capture. Les photos vont dans le
+            dossier <code>captures/</code>.
+          </p>
+
+          <div class="captures-head">
+            <h2>Captures</h2>
+            <span id="captureCount" class="count">0</span>
+          </div>
+          <div class="captures" id="captures"></div>
+        </aside>
+      </main>
+    </div>
+
+    <canvas id="canvas" hidden></canvas>
+    <script src="/app.js"></script>
+  </body>
+</html>
