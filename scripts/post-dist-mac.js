@@ -3,8 +3,8 @@ const fs = require("fs");
 const path = require("path");
 
 const dist = path.join(__dirname, "..", "dist");
-const dmg = path.join(dist, "CAMPHOTOS-1.0.2-arm64.dmg");
-const zip = path.join(dist, "CAMPHOTOS-1.0.2-arm64-mac.zip");
+const dmg = path.join(dist, "CAMPHOTOS-1.0.3-arm64.dmg");
+const zip = path.join(dist, "CAMPHOTOS-1.0.3-arm64-mac.zip");
 
 for (const file of [dmg, zip]) {
   if (!fs.existsSync(file)) {
