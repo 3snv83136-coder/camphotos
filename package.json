@@ -1,6 +1,6 @@
 {
   "name": "camphotos",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Visionneuse vidéo d'inspection avec capture photo",
   "main": "electron/main.js",
   "author": "CAMPHOTOS",

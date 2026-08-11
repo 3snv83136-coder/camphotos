@@ -5,7 +5,7 @@ Visionneuse pour vidéos d’inspection (caméra canalisation) avec capture phot
 ## Installer sur Mac
 
 1. Télécharge l’installateur :  
-   [CAMPHOTOS-1.0.0-arm64.dmg](https://github.com/3snv83136-coder/camphotos/releases/latest/download/CAMPHOTOS-1.0.0-arm64.dmg)
+   [CAMPHOTOS-1.0.1-arm64.dmg](https://github.com/3snv83136-coder/camphotos/releases/latest/download/CAMPHOTOS-1.0.1-arm64.dmg)
 2. Ouvre le DMG → glisse **CAMPHOTOS** dans **Applications**
 3. Au 1er lancement : clic droit → **Ouvrir**
 
