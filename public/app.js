@@ -73,11 +73,11 @@
     timecode.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
   }
 
-  function showStatus(message) {
+  function showStatus(message, ms = 2800) {
     statusEl.textContent = message;
     statusEl.classList.add("show");
     clearTimeout(showStatus._t);
-    showStatus._t = setTimeout(() => statusEl.classList.remove("show"), 2200);
+    showStatus._t = setTimeout(() => statusEl.classList.remove("show"), ms);
   }
 
   function shortPath(p) {
@@ -97,11 +97,10 @@
     openFolderBtn.hidden = false;
   }
 
-  function loadVideo(file) {
-    if (!file) return;
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
-    objectUrl = URL.createObjectURL(file);
-    video.src = objectUrl;
+  function loadVideoFromUrl(url, displayName, converted = false) {
+    if (objectUrl && objectUrl.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
+    objectUrl = url.startsWith("blob:") ? url : null;
+    video.src = url;
     video.controls = true;
     playerWrap.classList.add("has-video");
     emptyState.hidden = true;
@@ -109,7 +108,37 @@
     captureBtn.disabled = false;
     applySpeed();
     video.play().catch(() => {});
-    showStatus(file.name);
+    showStatus(converted ? `${displayName} (converti)` : displayName);
+  }
+
+  function loadVideo(file) {
+    if (!file) return;
+    if (objectUrl && objectUrl.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(file);
+    loadVideoFromUrl(objectUrl, file.name, false);
+  }
+
+  async function openVideoElectron(filePath) {
+    showStatus("Ouverture / conversion AVI…", 60000);
+    captureBtn.disabled = true;
+    const result = await api.openVideoPath(filePath);
+    if (!result?.ok) {
+      showStatus(result?.error || "Impossible d’ouvrir ce fichier", 5000);
+      return;
+    }
+    loadVideoFromUrl(result.url, result.name, result.converted);
+  }
+
+  async function pickVideoElectron(event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const result = await api.pickVideo();
+    if (result?.canceled) return;
+    if (!result?.ok) {
+      showStatus(result?.error || "Impossible d’ouvrir ce fichier", 5000);
+      return;
+    }
+    loadVideoFromUrl(result.url, result.name, result.converted);
   }
 
   speedDown.addEventListener("click", () => changeSpeed(-1));
@@ -121,16 +150,37 @@
     showStatus("Vitesse 1×");
   });
 
-  function onFileChange(event) {
+  async function onFileChange(event) {
     const file = event.target.files?.[0];
-    loadVideo(file);
     event.target.value = "";
+    if (!file) return;
+
+    if (isElectron && file.path) {
+      await openVideoElectron(file.path);
+      return;
+    }
+
+    const isAvi = /\.avi$/i.test(file.name) || file.type === "video/x-msvideo" || file.type === "video/avi";
+    if (!isElectron && isAvi) {
+      showStatus("AVI peu supporté dans le navigateur — utilise l’app Mac");
+    }
+    loadVideo(file);
   }
 
   videoInput.addEventListener("change", onFileChange);
   videoInputEmpty.addEventListener("change", onFileChange);
+
+  if (isElectron) {
+    document.querySelectorAll('label.file-btn').forEach((label) => {
+      label.addEventListener("click", pickVideoElectron);
+    });
+  }
+
   video.addEventListener("timeupdate", updateTimecode);
   video.addEventListener("loadedmetadata", updateTimecode);
+  video.addEventListener("error", () => {
+    showStatus("Lecture impossible (codec). Sur Mac, ouvre via l’app pour convertir l’AVI.");
+  });
 
   function renderCaptures() {
     captureCount.textContent = String(sessionCaptures.length);
@@ -293,17 +343,23 @@
     });
   });
 
-  playerWrap.addEventListener("drop", (e) => {
-    const file = [...(e.dataTransfer?.files || [])].find((f) =>
-      f.type.startsWith("video/")
+  playerWrap.addEventListener("drop", async (e) => {
+    const file = [...(e.dataTransfer?.files || [])].find(
+      (f) => f.type.startsWith("video/") || /\.(avi|mp4|mov|mkv|wmv|mpg|mpeg|webm)$/i.test(f.name)
     );
-    if (file) loadVideo(file);
+    if (!file) return;
+    if (isElectron && file.path) {
+      await openVideoElectron(file.path);
+      return;
+    }
+    loadVideo(file);
   });
 
   if (isElectron) {
     hint.innerHTML =
-      "Les photos sont enregistrées sur ton Mac dans <code>Documents/CAMPHOTOS/captures</code> (modifiable).";
+      "Les photos sont enregistrées sur ton Mac dans <code>Documents/CAMPHOTOS/captures</code> (modifiable). Les AVI sont convertis automatiquement.";
     refreshElectronFolderLabel();
+    api.onVideoStatus?.((msg) => showStatus(msg, 60000));
   } else if (!window.showDirectoryPicker) {
     folderBtn.disabled = true;
     folderLabel.textContent = "Téléchargements (Chrome/Edge recommandé)";
