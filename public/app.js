@@ -18,6 +18,8 @@
   const speedDown = document.getElementById("speedDown");
   const speedUp = document.getElementById("speedUp");
   const speedBtn = document.getElementById("speedBtn");
+  const closeVideoBtn = document.getElementById("closeVideoBtn");
+  const closeVideoSideBtn = document.getElementById("closeVideoSideBtn");
 
   const api = window.camphotos;
   const isElectron = Boolean(api?.isElectron);
@@ -97,6 +99,29 @@
     openFolderBtn.hidden = false;
   }
 
+  function setVideoUiOpen(open) {
+    closeVideoBtn.hidden = !open;
+    closeVideoSideBtn.hidden = !open;
+  }
+
+  function closeVideo() {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    if (objectUrl && objectUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(objectUrl);
+    }
+    objectUrl = null;
+    playerWrap.classList.remove("has-video");
+    emptyState.hidden = false;
+    hud.hidden = true;
+    captureBtn.disabled = true;
+    timecode.textContent = "00:00 / 00:00";
+    setVideoUiOpen(false);
+    applySpeed();
+    showStatus("Vidéo fermée — choisis-en une autre");
+  }
+
   function loadVideoFromUrl(url, displayName, converted = false) {
     if (objectUrl && objectUrl.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
     objectUrl = url.startsWith("blob:") ? url : null;
@@ -106,6 +131,7 @@
     emptyState.hidden = true;
     hud.hidden = false;
     captureBtn.disabled = false;
+    setVideoUiOpen(true);
     applySpeed();
     video.play().catch(() => {});
     showStatus(converted ? `${displayName} (converti)` : displayName);
@@ -149,6 +175,8 @@
     applySpeed();
     showStatus("Vitesse 1×");
   });
+  closeVideoBtn.addEventListener("click", closeVideo);
+  closeVideoSideBtn.addEventListener("click", closeVideo);
 
   async function onFileChange(event) {
     const file = event.target.files?.[0];
@@ -318,6 +346,10 @@
     if (e.key === "c" || e.key === "C") {
       e.preventDefault();
       capturePhoto();
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      if (video.src) closeVideo();
     }
     if (e.key === "<" || e.key === ",") {
       e.preventDefault();

@@ -331,6 +331,10 @@ a.btn {
   font-size: 1rem;
 }
 
+.btn-close-video {
+  width: 100%;
+}
+
 .btn-capture:hover:not(:disabled) {
   background: #34c9b4;
 }
