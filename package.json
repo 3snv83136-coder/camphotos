@@ -1,6 +1,6 @@
 {
   "name": "camphotos",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Visionneuse vidéo d'inspection avec capture photo",
   "main": "electron/main.js",
   "author": "CAMPHOTOS",
@@ -8,7 +8,7 @@
     "start": "node server.js",
     "dev": "node server.js",
     "app": "electron .",
-    "dist:mac": "electron-builder --mac dmg zip",
+    "dist:mac": "electron-builder --mac dmg zip && node scripts/post-dist-mac.js",
     "build:web": "echo 'CAMPHOTOS static — output public/'"
   },
   "dependencies": {
@@ -24,7 +24,8 @@
     "appId": "com.camphotos.app",
     "productName": "CAMPHOTOS",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
       "electron/**/*",
@@ -41,23 +42,34 @@
         "dmg",
         "zip"
       ],
-      "identity": null
+      "identity": null,
+      "gatekeeperAssess": false,
+      "hardenedRuntime": false
     },
     "dmg": {
-      "title": "Installer CAMPHOTOS",
+      "title": "CAMPHOTOS",
+      "format": "UDZO",
+      "writeUpdateInfo": false,
       "contents": [
         {
           "x": 140,
-          "y": 180,
+          "y": 160,
           "type": "file"
         },
         {
           "x": 420,
-          "y": 180,
+          "y": 160,
           "type": "link",
           "path": "/Applications"
+        },
+        {
+          "x": 280,
+          "y": 340,
+          "type": "file",
+          "path": "build/Installer.command"
         }
       ]
-    }
+    },
+    "afterPack": "scripts/after-pack.js"
   }
 }
