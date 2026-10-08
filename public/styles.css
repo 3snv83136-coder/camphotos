@@ -218,6 +218,13 @@ a.btn {
   line-height: 1.45;
 }
 
+.empty-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 #video {
   width: 100%;
   height: 100%;

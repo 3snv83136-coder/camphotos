@@ -60,6 +60,10 @@
           <button type="button" class="btn btn-ghost" id="openFolderBtn" hidden>
             Ouvrir le dossier
           </button>
+          <a class="btn btn-ghost" id="backItvBtn" hidden>Retour Caméra ITV</a>
+          <button type="button" class="btn btn-primary" id="resumeVideoBtn" hidden>
+            Revenir à la caméra
+          </button>
           <button type="button" class="btn btn-ghost" id="closeVideoBtn" hidden>
             Fermer la vidéo
           </button>
@@ -77,10 +81,15 @@
             <p class="empty-text">
               Charge une vidéo d’inspection (AVI, MP4, MOV…) pour commencer les captures.
             </p>
-            <label class="btn btn-primary file-btn">
-              Choisir un fichier
-              <input id="videoInputEmpty" type="file" accept="video/*,.avi,.AVI,.mkv,.wmv,.mpg,.mpeg" hidden />
-            </label>
+            <div class="empty-actions">
+              <button type="button" class="btn btn-primary" id="resumeVideoEmptyBtn" hidden>
+                Revenir à la caméra
+              </button>
+              <label class="btn btn-primary file-btn" id="pickVideoEmptyLabel">
+                Choisir un fichier
+                <input id="videoInputEmpty" type="file" accept="video/*,.avi,.AVI,.mkv,.wmv,.mpg,.mpeg" hidden />
+              </label>
+            </div>
           </div>
 
           <video id="video" playsinline></video>
@@ -111,6 +120,9 @@
             <span class="capture-icon" aria-hidden="true"></span>
             Capturer la photo
             <kbd>C</kbd>
+          </button>
+          <button type="button" class="btn btn-primary btn-close-video" id="resumeVideoSideBtn" hidden>
+            Revenir à la caméra
           </button>
           <button type="button" class="btn btn-ghost btn-close-video" id="closeVideoSideBtn" hidden>
             Fermer / changer de vidéo

@@ -20,6 +20,12 @@
   const speedBtn = document.getElementById("speedBtn");
   const closeVideoBtn = document.getElementById("closeVideoBtn");
   const closeVideoSideBtn = document.getElementById("closeVideoSideBtn");
+  const resumeVideoBtn = document.getElementById("resumeVideoBtn");
+  const resumeVideoEmptyBtn = document.getElementById("resumeVideoEmptyBtn");
+  const resumeVideoSideBtn = document.getElementById("resumeVideoSideBtn");
+  const backItvBtn = document.getElementById("backItvBtn");
+  const emptyTitle = document.querySelector(".empty-title");
+  const emptyText = document.querySelector(".empty-text");
 
   const api = window.camphotos;
   const isElectron = Boolean(api?.isElectron);
@@ -30,7 +36,37 @@
   let objectUrl = null;
   let capturing = false;
   let dirHandle = null;
+  let lastVideo = null;
+  let videoOpen = false;
   const sessionCaptures = [];
+
+  function isAllowedReturn(raw) {
+    try {
+      const u = new URL(raw, window.location.origin);
+      const hosts = new Set([
+        "localhost",
+        "127.0.0.1",
+        "app-allo-debouchage.vercel.app",
+        "ad-inter.vercel.app",
+        "app-realisations-ltdb.vercel.app",
+      ]);
+      if (!hosts.has(u.hostname)) return null;
+      if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+      return u.toString();
+    } catch {
+      return null;
+    }
+  }
+
+  function setupBackItv() {
+    if (!backItvBtn) return;
+    const fromQuery = isAllowedReturn(new URLSearchParams(window.location.search).get("retour") || "");
+    const fromRef = isAllowedReturn(document.referrer);
+    const href = fromQuery || fromRef;
+    if (!href) return;
+    backItvBtn.href = href;
+    backItvBtn.hidden = false;
+  }
 
   function formatSpeed(rate) {
     return `${rate}×`;
@@ -40,13 +76,13 @@
     const rate = SPEEDS[speedIndex];
     video.playbackRate = rate;
     speedBtn.textContent = formatSpeed(rate);
-    speedDown.disabled = !video.src || speedIndex <= 0;
-    speedUp.disabled = !video.src || speedIndex >= SPEEDS.length - 1;
-    speedBtn.disabled = !video.src;
+    speedDown.disabled = !videoOpen || speedIndex <= 0;
+    speedUp.disabled = !videoOpen || speedIndex >= SPEEDS.length - 1;
+    speedBtn.disabled = !videoOpen;
   }
 
   function changeSpeed(delta) {
-    if (!video.src) return;
+    if (!videoOpen) return;
     const next = speedIndex + delta;
     if (next < 0 || next >= SPEEDS.length) return;
     speedIndex = next;
@@ -100,31 +136,66 @@
   }
 
   function setVideoUiOpen(open) {
+    videoOpen = open;
     closeVideoBtn.hidden = !open;
     closeVideoSideBtn.hidden = !open;
+    const canResume = Boolean(lastVideo) && !open;
+    resumeVideoBtn.hidden = !canResume;
+    resumeVideoEmptyBtn.hidden = !canResume;
+    resumeVideoSideBtn.hidden = !canResume;
+    if (emptyTitle) emptyTitle.textContent = canResume ? "Caméra en pause" : "Aucune vidéo";
+    if (emptyText) {
+      emptyText.textContent = canResume
+        ? `Reviens à ${lastVideo.name} au même timecode, ou ouvre une autre vidéo.`
+        : "Charge une vidéo d’inspection (AVI, MP4, MOV…) pour commencer les captures.";
+    }
   }
 
   function closeVideo() {
+    if (!video.src) return;
+    lastVideo = {
+      url: video.src,
+      name: lastVideo?.name || "vidéo",
+      converted: Boolean(lastVideo?.converted),
+      time: Number.isFinite(video.currentTime) ? video.currentTime : 0,
+      speedIndex,
+    };
     video.pause();
-    video.removeAttribute("src");
-    video.load();
-    if (objectUrl && objectUrl.startsWith("blob:")) {
-      URL.revokeObjectURL(objectUrl);
-    }
-    objectUrl = null;
     playerWrap.classList.remove("has-video");
     emptyState.hidden = false;
     hud.hidden = true;
     captureBtn.disabled = true;
-    timecode.textContent = "00:00 / 00:00";
     setVideoUiOpen(false);
     applySpeed();
-    showStatus("Vidéo fermée — choisis-en une autre");
+    showStatus("Caméra en pause — Revenir à la caméra pour continuer");
+  }
+
+  function resumeVideo() {
+    if (!lastVideo) return;
+    const resumeAt = lastVideo.time || 0;
+    const resumeSpeed = lastVideo.speedIndex;
+    playerWrap.classList.add("has-video");
+    emptyState.hidden = true;
+    hud.hidden = false;
+    captureBtn.disabled = false;
+    speedIndex = Number.isInteger(resumeSpeed) ? resumeSpeed : speedIndex;
+    setVideoUiOpen(true);
+    applySpeed();
+    const seek = () => {
+      if (Number.isFinite(resumeAt)) video.currentTime = resumeAt;
+      video.play().catch(() => {});
+    };
+    if (video.readyState >= 1) seek();
+    else video.addEventListener("loadedmetadata", seek, { once: true });
+    showStatus(lastVideo.name);
   }
 
   function loadVideoFromUrl(url, displayName, converted = false) {
-    if (objectUrl && objectUrl.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
+    if (objectUrl && objectUrl !== url && objectUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(objectUrl);
+    }
     objectUrl = url.startsWith("blob:") ? url : null;
+    lastVideo = { url, name: displayName, converted, time: 0, speedIndex };
     video.src = url;
     video.controls = true;
     playerWrap.classList.add("has-video");
@@ -170,13 +241,16 @@
   speedDown.addEventListener("click", () => changeSpeed(-1));
   speedUp.addEventListener("click", () => changeSpeed(1));
   speedBtn.addEventListener("click", () => {
-    if (!video.src) return;
+    if (!videoOpen) return;
     speedIndex = SPEEDS.indexOf(1);
     applySpeed();
     showStatus("Vitesse 1×");
   });
   closeVideoBtn.addEventListener("click", closeVideo);
   closeVideoSideBtn.addEventListener("click", closeVideo);
+  resumeVideoBtn.addEventListener("click", resumeVideo);
+  resumeVideoEmptyBtn.addEventListener("click", resumeVideo);
+  resumeVideoSideBtn.addEventListener("click", resumeVideo);
 
   async function onFileChange(event) {
     const file = event.target.files?.[0];
@@ -349,7 +423,8 @@
     }
     if (e.key === "Escape") {
       e.preventDefault();
-      if (video.src) closeVideo();
+      if (videoOpen) closeVideo();
+      else if (lastVideo) resumeVideo();
     }
     if (e.key === "<" || e.key === ",") {
       e.preventDefault();
@@ -414,4 +489,6 @@
     installBanner.hidden = true;
     sessionStorage.setItem("camphotos-hide-install", "1");
   });
+
+  setupBackItv();
 })();
